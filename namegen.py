@@ -2,6 +2,7 @@
 
 import sys
 import json
+import gzip
 from bisect import bisect
 
 from entitygenerator import EntityGenerator, EntityElement, DictElement
@@ -19,8 +20,9 @@ class NameCDF(object):
         self.names = []
 
 
-        f = open(dataFile, 'r')
-        for line in f:
+        f = gzip.open(dataFile, 'r')
+        for data in f:
+            line = data.decode('utf-8')
             fields = line.strip().split(delimiter)
             self.names.append(fields[0])
             self.cumpct.append(float(fields[1]))
@@ -34,9 +36,9 @@ class NameCDF(object):
 
 
 class USCensusName(DictElement):
-    def __init__(self, male = "data/male.dat",
-                       female = "data/female.dat",
-                       surname = "data/surname.dat",
+    def __init__(self, male = "data/male.dat.gz",
+                       female = "data/female.dat.gz",
+                       surname = "data/surname.dat.gz",
                        order=None,           # output order of full name (one
                                              #   of None, LFM, or FML).
                        pctMidName=1.0,       # percentage of names which have
