@@ -27,6 +27,7 @@ class AddressElement(DictElement):
         self.min_id = int(min_id)
         self.max_id = int(max_id)
         self.range_id = self.max_id - self.min_id
+        self.table = table
         self.fields = fields
 
         cols = ', '.join(fields)
@@ -48,6 +49,22 @@ class AddressElement(DictElement):
         DictElement.addChildren(self, d, **kwargs)
         return d
 
+    def dumpAsCSV(self):
+        '''
+        A utility method which can be used to dump the SQLite database
+        to a text format.  This method intended to help with transition
+        to a plain text (vs binary database) address file.
+        '''
+
+        cols = ', '.join(self.fields)
+        sql = 'select {0:s} from {1:s}'.format(cols, self.table)
+
+        cur = self.con.cursor()
+        cur.execute(sql)
+        
+        for row in cur:
+            print('|'.join(row))
+
 class USAddress(AddressElement):
     def __init__( self, dataFile = 'data/us_addresses.db',
                         table = 'addresses',
@@ -67,6 +84,11 @@ class USAddress(AddressElement):
 
 def main(argv):
     addr = USAddress()
+
+    if len(argv) > 1 and argv[1] == '--dump':
+        addr.dumpAsCSV()
+        return 0
+
     print(json.dumps(addr.create()))
     return 0
 
