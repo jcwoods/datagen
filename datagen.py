@@ -52,43 +52,6 @@ from dobgen import DOBElement
 #        - Create a CDF for each zip code with area code frequencies
 #        - do not use invalid exchanges or sequence numbers
 
-
-# ### Entity Generator ###
-# The EntityGenerator class serves as a container for Elements.  When the
-# create() method is called on this object, it walks through its list of
-# children calling create() on each of them in turn.
-
-# ### Elements ###
-# There are three main types of elements.  These elements are all derrived
-# from the EntityElement class, and each may be added as a child to the
-# EntityGenerator object (above).  These Element types include:
-#
-#    - A SimpleElement.  This is an Element which creates nothing more than
-#      a simple value, such as a string or integer.
-#    - An ArrayElement.  This Element is implemented as a list of homogenous
-#      items.  The items INSIDE this container, which are created by the 
-#      generator passed in the object initialization, may be of any supported
-#      Element type (Simple, Array, or Dict).  The number of items generated
-#      inside the array will be repeated as described by the count_fn param.
-#    - A DictElement.  This Element returns a dict populated with key/value
-#      pairs.  This is the most sophisticated Element, supporting the nesting
-#      of child Elements (see below).
-#
-# Each type of Element supports one or more generators.  A sample of
-# generators might include gender (simple), dob (simple), name (dict),
-# address (dict), and ssn (simple).  An entity would almost certainly have
-# more than one address, so we could employ an ArrayElement to enclose the
-# address dict.
-
-# ### Child Elements ###
-# Outside of the EntityGenerator class, only Elements based on the DictElement
-# class may have children.  This makes sense because:
-#    - the entity to which the child is added must be a container of some
-#      sort.  Of the three Element types, only Dict and Array qualify.
-#    - An ArrayElement gets filled with a consistent type of element (names,
-#      addresses, trades, etc).
-
-
 def serialize_csv(e):
     fname = e['name'].get('first', '')
     mname = e['name'].get('middle', '')
