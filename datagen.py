@@ -14,6 +14,7 @@ from phonegen import PhoneElement
 from gendergen import GenderElement
 from natidgen import NationalIDElement
 from dobgen import DOBElement
+from tradegen import USCreditAccount
 
 # TODO - Modifier functions, two types: pre- and post-serialization.
 # pre-modifiers change the object before it is serialized.  This might
@@ -127,6 +128,12 @@ def main(argv):
     addr.addElement(phoneBlock)  # add the block of phones to each address...
     egen.addElement(addrBlock)   # ...and finally add the addresses to the entity.
 
+    trade = USCreditAccount()
+    tradeBlock = ArrayElement(name = 'trades',
+                              count_fn = EntityElement.count_rand_fn(max=9,
+                                                                     min=0),
+                              generator = trade)
+    egen.addElement(tradeBlock)
 
     # create a few entities 
     serialize = serialize_json

@@ -1,0 +1,6 @@
+ranges.csv : data from binlist.net (https://github.com/binlist/data), which
+             is distributed under the apache 2.0 license.
+
+All name data originated from 1990 US Census files in the public domain.
+
+Addresses and phone number distributions taken from USASpending.gov data.
