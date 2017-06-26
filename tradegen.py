@@ -24,7 +24,6 @@ class TradeElement(DictElement):
         for d in reader:
             if countryFilter is not None:
                 if d['country'] not in countryFilter: continue
-                if d['iin_start'] is "": continue
 
             trades.append(d)
 
@@ -55,15 +54,8 @@ class TradeElement(DictElement):
 
     def create(self, **kwargs):
         r = int(EntityElement.pool.next() * len(self.trades))
-        d = self.trades[r]
-
-        # TODO - For some reason, iin_start does not exist at times?
-        try:
-            iin = d['iin_start']  # TODO - also use to iin_end
-        except:
-            print("*** BOOM ***")
-            print(str(d))
-            sys.exit(1)
+        d = self.trades[r].copy()
+        iin = d['iin_start']  # TODO - also use to iin_end
 
         if d['number_length'] is not "":
              acct_len = int(d['number_length'])
