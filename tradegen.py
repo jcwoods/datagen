@@ -55,7 +55,22 @@ class TradeElement(DictElement):
     def create(self, **kwargs):
         r = int(EntityElement.pool.next() * len(self.trades))
         d = self.trades[r].copy()
-        iin = d['iin_start']  # TODO - also use to iin_end
+
+        print(str(d))
+
+        iin_start = int(d['iin_start'])
+        iin_end = d['iin_end']
+        iin_end = int(iin_end) if iin_end is not '' else iin_start
+        iin_range = iin_end - iin_start
+
+        if iin_start == iin_end:
+            r = 0
+        else:
+            rnd = EntityElement.pool.next()
+            r = int(rnd * (iin_range + 1))
+
+        iin = iin_start + r
+        iin = str(iin)
 
         if d['number_length'] is not "":
              acct_len = int(d['number_length'])
@@ -93,7 +108,7 @@ class USCreditAccount(TradeElement):
 def main(argv):
     trade = USCreditAccount()
 
-    for i in range(10):
+    for i in range(10000):
         print(json.dumps(trade.create()))
 
     return 0
