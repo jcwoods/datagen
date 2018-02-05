@@ -19,7 +19,7 @@ class AddressElement(DictElement):
 
         f = gzip.open(dataFile, 'r')
         for line in f:
-            iline = line.decode('utf-8')
+            iline = line.decode('utf-8').rstrip('\r\n')
             cols = iline.split('|')
             if len(cols) != nfields:
                 print("Invalid number of fields in address: " + line)
