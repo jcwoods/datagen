@@ -56,7 +56,7 @@ class TradeElement(DictElement):
         r = int(EntityElement.pool.next() * len(self.trades))
         d = self.trades[r].copy()
 
-        print(str(d))
+        #print(str(d))
 
         iin_start = int(d['iin_start'])
         iin_end = d['iin_end']
