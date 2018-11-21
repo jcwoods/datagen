@@ -3,6 +3,7 @@
 import sys
 import gzip
 import json
+import random
 import sqlite3
 
 from entitygenerator import EntityElement, DictElement
@@ -42,7 +43,7 @@ class AddressElement(DictElement):
         return
 
     def create(self, **kwargs):
-        r = int(EntityElement.pool.next() * len(self.addrs))
+        r = int(random.random() * len(self.addrs))
         d = self.addrs[r]
 
         DictElement.addChildren(self, d, **kwargs)
@@ -63,9 +64,7 @@ class USAddress(AddressElement):
 
 def main(argv):
     addr = USAddress()
-
-    for i in range(10):
-        print(json.dumps(addr.create()))
+    print(json.dumps(addr.create()))
 
     return 0
 

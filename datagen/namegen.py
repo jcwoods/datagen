@@ -4,6 +4,7 @@ import sys
 import json
 import gzip
 from bisect import bisect
+import random
 
 from entitygenerator import EntityGenerator, EntityElement, DictElement
 
@@ -31,7 +32,7 @@ class NameCDF(object):
         return
 
     def getName(self):
-        pos = bisect(self.cumpct, EntityElement.pool.next())
+        pos = bisect(self.cumpct, random.random())
         return self.names[pos]
 
 
@@ -73,7 +74,7 @@ class USCensusName(DictElement):
 
         if gender is None:
             fn_gen = self.male.getName
-            if EntityElement.pool.next() < 0.5:
+            if random.random() < 0.5:
                  fn_gen = self.female.getName
         elif gender.lower() in ['m', 'male'] :
             fn_gen = self.male.getName
@@ -83,15 +84,11 @@ class USCensusName(DictElement):
             raise ValueError('Invalid gender: {0:s}'.format(gender))
 
         first = fn_gen()
-        if self.pctFirstInitial > EntityElement.pool.next():
-            first = first[0]
 
         last = self.surname.getName()
 
-        if EntityElement.pool.next() < self.pctMidName:
+        if random.random() < self.pctMidName:
             middle = fn_gen()
-            if EntityElement.pool.next() < self.pctMidInitial:
-                middle = middle[0]
         else:
             middle = None
 

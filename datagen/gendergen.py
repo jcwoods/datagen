@@ -3,6 +3,7 @@
 import sys
 from bisect import bisect
 from entitygenerator import EntityElement, SimpleElement
+import random
 
 class GenderElement(SimpleElement):
     def __init__(self, pctMale=0.50, **kwargs):
@@ -17,7 +18,7 @@ class GenderElement(SimpleElement):
         return
 
     def create(self, **kwargs):
-        r = EntityElement.pool.next()
+        r = random.random()
         if r <= self.pctMale: return 'M'
         return 'F'
 

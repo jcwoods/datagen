@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 
 import sys
-import numpy as np
-from randpool import RandPool
+import random
 
 # ### Entity Generator ###
 # The EntityGenerator class serves as a container for Elements.  When the
@@ -122,8 +121,6 @@ class EntityElement(object):
         root     - a reference to EntityGenerator object used to create this
                    data entity.
     '''
-
-    pool = RandPool()  # a pool of random numbers everybody can share.
 
     def __init__(self, name = None,
                        generator = None,

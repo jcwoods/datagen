@@ -4,6 +4,7 @@ import sys
 import gzip
 import csv
 import json
+import random
 
 from entitygenerator import EntityElement, DictElement
 
@@ -53,7 +54,7 @@ class TradeElement(DictElement):
         return luhn_checksum(card_number) == 0
 
     def create(self, **kwargs):
-        r = int(EntityElement.pool.next() * len(self.trades))
+        r = int(random.random() * len(self.trades))
         d = self.trades[r].copy()
 
         #print(str(d))
@@ -66,7 +67,7 @@ class TradeElement(DictElement):
         if iin_start == iin_end:
             r = 0
         else:
-            rnd = EntityElement.pool.next()
+            rnd = random.random()
             r = int(rnd * (iin_range + 1))
 
         iin = iin_start + r
@@ -86,7 +87,7 @@ class TradeElement(DictElement):
         
         # build the random account number
         n = acct_len - 6 - 1   # less BIN number and Luhn check digit
-        acct = iin + str(int(EntityElement.pool.next() * (10 ** n))).zfill(n)
+        acct = iin + str(int(random.random() * (10 ** n))).zfill(n)
         acct += str(self.luhn_checksum( acct ))
         d['account_no'] = acct
 
@@ -107,9 +108,7 @@ class USCreditAccount(TradeElement):
 
 def main(argv):
     trade = USCreditAccount()
-
-    for i in range(10000):
-        print(json.dumps(trade.create()))
+    print(json.dumps(trade.create()))
 
     return 0
 

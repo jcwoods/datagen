@@ -3,6 +3,7 @@
 import sys
 from datetime import datetime, timedelta
 from entitygenerator import EntityElement, SimpleElement
+import random
 
 # TODO - needs a better age distribution
 class DOBElement(SimpleElement):
@@ -23,13 +24,14 @@ class DOBElement(SimpleElement):
         return
 
     def create(self, **kwargs):
-        ndays = int(EntityElement.pool.next() * self.days)
+        ndays = int(random.random() * self.days)
         dt = datetime.now() - timedelta(days=ndays)
         return dt.strftime(self.dt_format)
 
 def main(argv):
     dob = DOBElement()
     print(dob.create())
+
     return 0
 
 if __name__ == '__main__':

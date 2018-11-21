@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import random
 import sys
 from entitygenerator import EntityElement, SimpleElement
 
@@ -9,7 +10,7 @@ class PhoneElement(SimpleElement):
         return
 
     def create(self, **kwargs):
-        r = int(EntityElement.pool.next() * 10000000000)
+        r = int(random.random() * 10000000000)
         p = '{0:010d}'.format(r)
         return p
 
