@@ -6,7 +6,7 @@ import csv
 import json
 import random
 
-from entitygenerator import EntityElement, DictElement
+from datagen.entitygenerator import DictElement
 
 class TradeElement(DictElement):
     def __init__(self, dataFile=None,

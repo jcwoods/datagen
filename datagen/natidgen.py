@@ -3,7 +3,7 @@
 import random
 import sys
 
-from entitygenerator import EntityElement, SimpleElement
+from datagen.entitygenerator import SimpleElement
 
 class NationalIDElement(SimpleElement):
     def __init__(self,

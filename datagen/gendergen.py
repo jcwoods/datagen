@@ -2,7 +2,7 @@
 
 import sys
 from bisect import bisect
-from entitygenerator import EntityElement, SimpleElement
+from datagen.entitygenerator import SimpleElement
 import random
 
 class GenderElement(SimpleElement):

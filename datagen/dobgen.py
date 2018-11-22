@@ -2,7 +2,7 @@
 
 import sys
 from datetime import datetime, timedelta
-from entitygenerator import EntityElement, SimpleElement
+from datagen.entitygenerator import EntityElement, SimpleElement
 import random
 
 # TODO - needs a better age distribution

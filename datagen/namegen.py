@@ -6,40 +6,13 @@ import gzip
 from bisect import bisect
 import random
 
-from entitygenerator import EntityGenerator, EntityElement, DictElement
-
-class NameCDF(object):
-
-    '''
-    Implements a simple class which loads a CDF and executes a bisect operation
-    on it to locate random values (based on CDF distribution).  This is useful
-    for things such as names.  ;)
-    '''
-
-    def __init__(self, dataFile=None, delimiter='|'):
-        self.cumpct = []
-        self.names = []
-
-
-        f = gzip.open(dataFile, 'r')
-        for data in f:
-            line = data.decode('utf-8')
-            fields = line.strip().split(delimiter)
-            self.names.append(fields[0])
-            self.cumpct.append(float(fields[1]))
-
-        f.close()
-        return
-
-    def getName(self):
-        pos = bisect(self.cumpct, random.random())
-        return self.names[pos]
-
+from datagen.entitygenerator import EntityGenerator, DictElement
+from datagen.cdf import CDF
 
 class USCensusName(DictElement):
-    def __init__(self, male = "data/male.dat.gz",
-                       female = "data/female.dat.gz",
-                       surname = "data/surname.dat.gz",
+    def __init__(self, male = "male.dat.gz",
+                       female = "female.dat.gz",
+                       surname = "surname.dat.gz",
                        order=None,           # output order of full name (one
                                              #   of None, LFM, or FML).
                        pctMidName=1.0,       # percentage of names which have
@@ -53,9 +26,9 @@ class USCensusName(DictElement):
 
         DictElement.__init__(self, **kwargs)
 
-        self.male = NameCDF(male)
-        self.female = NameCDF(female)
-        self.surname = NameCDF(surname)
+        self.male = CDF(dataFile = male, delimiter="|", labelPos = 0, weightPos = 1, isCumulative = True)
+        self.female = CDF(dataFile = female, delimiter="|", labelPos = 0, weightPos = 1, isCumulative = True)
+        self.surname = CDF(dataFile = surname, delimiter="|", labelPos = 0, weightPos = 1, isCumulative = True)
 
         self.order = order
         self.pctMidName = pctMidName

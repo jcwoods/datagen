@@ -3,13 +3,15 @@
 import sys
 import gzip
 import json
+import os
 import random
 import sqlite3
 
-from entitygenerator import EntityElement, DictElement
+from datagen.entitygenerator import EntityElement, DictElement
 
 class AddressElement(DictElement):
-    def __init__(self, dataFile=None,
+    def __init__(self, dataPath = None,
+                       dataFile=None,
                        fields = [],
                        **kwargs ):
 
@@ -18,7 +20,10 @@ class AddressElement(DictElement):
         addrs = []
         nfields = len(fields)
 
-        f = gzip.open(dataFile, 'r')
+        if dataPath is None:
+            dataPath = os.path.join(os.path.dirname(__file__), 'data')
+
+        f = gzip.open(os.path.join(dataPath, dataFile), 'r')
         for line in f:
             iline = line.decode('utf-8').rstrip('\r\n')
             cols = iline.split('|')
@@ -50,7 +55,8 @@ class AddressElement(DictElement):
         return d
 
 class USAddress(AddressElement):
-    def __init__( self, dataFile = 'data/us_addresses.dat.gz',
+    def __init__( self, dataPath = None,
+                        dataFile = 'us_addresses.dat.gz',
                         fields = [ 'street1', 'street2', 'street3',
                                    'city', 'state', 'postalcode' ],
                         **kwargs ):

@@ -4,17 +4,14 @@ import sys
 import json
 import sqlite3
 
-import numpy as np
-from randpool import RandPool
-
-from entitygenerator import EntityGenerator, EntityElement, ArrayElement
-from namegen import USCensusName
-from addrgen import USAddress
-from phonegen import PhoneElement
-from gendergen import GenderElement
-from natidgen import NationalIDElement
-from dobgen import DOBElement
-from tradegen import USCreditAccount
+from datagen.entitygenerator import EntityGenerator, EntityElement, ArrayElement
+from datagen.namegen import USCensusName
+from datagen.addrgen import USAddress
+from datagen.phonegen import PhoneElement
+from datagen.gendergen import GenderElement
+from datagen.natidgen import NationalIDElement
+from datagen.dobgen import DOBElement
+from datagen.tradegen import USCreditAccount
 
 # TODO - Modifier functions, two types: pre- and post-serialization.
 # pre-modifiers change the object before it is serialized.  This might
