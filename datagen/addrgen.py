@@ -7,7 +7,7 @@ from datagen.sqlelement import SQLElement
 
 class USAddress(SQLElement):
     def __init__(self,
-                 dataFile = 'us_address_2pct.db',
+                 dataFile = 'us_address.db',
                  tableName = 'us_address',
                  **kwargs):
 
