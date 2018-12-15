@@ -88,8 +88,7 @@ def main(argv):
     gender = GenderElement(name = 'gender')
     egen.addElement(gender)
 
-    dob = DOBElement(name = 'dob',
-                     dt_format = '%Y%m%d')
+    dob = DOBElement(name = 'dob', dateFormat = '%Y%m%d')
     egen.addElement(dob)
 
     ssn = NationalIDElement(name = 'ssn',
@@ -111,6 +110,7 @@ def main(argv):
     # numbers, and there will be exactly two phone numbers in each block.
 
     addr = USAddress()
+    addr.create()
     addrBlock = ArrayElement(name = 'addresses',
                              count_fn = EntityElement.count_rand_fn(max = 5,
                                                                     min = 1),

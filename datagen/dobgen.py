@@ -9,7 +9,7 @@ import random
 class DOBElement(SimpleElement):
     def __init__(self, minAge = 18,
                        maxAge = 100,
-                       dt_format = '%Y-%m-%d',
+                       dateFormat = '%Y-%m-%d',
                        **kwargs):
 
         SimpleElement.__init__(self, **kwargs)
@@ -17,13 +17,13 @@ class DOBElement(SimpleElement):
         yspan = maxAge - minAge
         days = int(float(yspan) * 365.25)      # roughly
 
-        self.dt_format = dt_format
+        self.dt_format = dateFormat
         self.minAge = minAge
         self.maxAge = maxAge
         self.days = days
         return
 
-    def create(self, **kwargs):
+    def create(self):
         ndays = int(random.random() * self.days)
         dt = datetime.now() - timedelta(days=ndays)
         return dt.strftime(self.dt_format)

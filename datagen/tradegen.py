@@ -5,18 +5,26 @@ import gzip
 import csv
 import json
 import random
+import os
 
 from datagen.entitygenerator import DictElement
 
+
 class TradeElement(DictElement):
-    def __init__(self, dataFile=None,
-                       countryFilter = None,
-                       **kwargs ):
+    def __init__(self, dataPath=None,
+                 dataFile=None,
+                 countryFilter=None,
+                 **kwargs):
 
         DictElement.__init__(self, **kwargs)
 
-        trades = [ ]
+        trades = []
         fields = None
+
+        if dataPath is None:
+            dataPath = os.path.join(os.path.dirname(__file__), 'data')
+    
+        dataFile = os.path.join(dataPath, dataFile) 
 
         f = gzip.open(dataFile, 'rt', encoding='utf-8')
 
@@ -24,7 +32,8 @@ class TradeElement(DictElement):
         reader = csv.DictReader(f, delimiter=',', quotechar='"')
         for d in reader:
             if countryFilter is not None:
-                if d['country'] not in countryFilter: continue
+                if d['country'] not in countryFilter:
+                    continue
 
             trades.append(d)
 
@@ -32,7 +41,6 @@ class TradeElement(DictElement):
 
         self.fields = fields
         self.trades = trades
-
         return
 
     @staticmethod
@@ -51,13 +59,11 @@ class TradeElement(DictElement):
 
     @staticmethod
     def is_luhn_valid(card_number):
-        return luhn_checksum(card_number) == 0
+        return TradeElement.luhn_checksum(card_number) == 0
 
-    def create(self, **kwargs):
+    def create(self):
         r = int(random.random() * len(self.trades))
         d = self.trades[r].copy()
-
-        #print(str(d))
 
         iin_start = int(d['iin_start'])
         iin_end = d['iin_end']
@@ -74,43 +80,45 @@ class TradeElement(DictElement):
         iin = str(iin)
 
         if d['number_length'] is not "":
-             acct_len = int(d['number_length'])
+            acct_len = int(d['number_length'])
         else:
             acct_len = 16
             if d['scheme'] == 'AMEX':
                 acct_len = 15
 
         # lots of fields... don't need them all.
-        for key in [ 'iin_start', 'iin_end', 'bank_logo', 'number_length',
-                     'bank_url', 'bank_city' ]:
+        for key in ['iin_start', 'iin_end', 'bank_logo', 'number_length',
+                    'bank_url', 'bank_city']:
             del(d[key])
-        
+
         # build the random account number
         n = acct_len - 6 - 1   # less BIN number and Luhn check digit
         acct = iin + str(int(random.random() * (10 ** n))).zfill(n)
-        acct += str(self.luhn_checksum( acct ))
+        acct += str(self.luhn_checksum(acct))
         d['account_no'] = acct
 
-        DictElement.addChildren(self, d, **kwargs)
+        DictElement.addChildren(self, d)
         return d
 
+
 class USCreditAccount(TradeElement):
-    def __init__( self, dataFile = 'data/ranges.csv.gz',
-                        countryFilter = [ 'US' ],
-                        **kwargs ):
+    def __init__(self, dataPath=None,
+                 dataFile='ranges.csv.gz',
+                 countryFilter=['US'],
+                 **kwargs):
 
-        TradeElement.__init__(self, dataFile = dataFile,
-                                    countryFilter = countryFilter,
-                                    **kwargs)
+        TradeElement.__init__(self, dataPath=dataPath,
+                              dataFile=dataFile,
+                              countryFilter=countryFilter,
+                              **kwargs)
         return
-
 
 
 def main(argv):
     trade = USCreditAccount()
     print(json.dumps(trade.create()))
-
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

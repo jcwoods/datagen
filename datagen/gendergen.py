@@ -17,7 +17,7 @@ class GenderElement(SimpleElement):
         self.pctMale = pctMale
         return
 
-    def create(self, **kwargs):
+    def create(self):
         r = random.random()
         if r <= self.pctMale: return 'M'
         return 'F'

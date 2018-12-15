@@ -92,7 +92,9 @@ class SQLElement(DictElement):
         rset = self.db.execute(self.query, (r,))
         row = rset.fetchone()
 
-        return dict(zip(self.columns, row))
+        r = dict(zip(self.columns, row))
+        DictElement.addChildren(self, r)
+        return r
 
 
 def main(argv):

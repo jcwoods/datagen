@@ -14,7 +14,7 @@ class NationalIDElement(SimpleElement):
         self.useDashes = useDashes
         return
 
-    def create(self, **kwargs):
+    def create(self):
 
         # area cannot be 000, 666, or 900-999.
         while True:

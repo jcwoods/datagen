@@ -9,7 +9,7 @@ class PhoneElement(SimpleElement):
         SimpleElement.__init__(self, **kwargs)
         return
 
-    def create(self, **kwargs):
+    def create(self):
         r = int(random.random() * 10000000000)
         p = '{0:010d}'.format(r)
         return p

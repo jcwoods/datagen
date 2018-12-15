@@ -36,7 +36,7 @@ class USCensusName(DictElement):
         self.pctFirstInitial = pctFirstInitial
         return
 
-    def create(self, gender = None, **kwargs):
+    def create(self, gender = None):
 
         # If we have a path to Gender (as a parameter), we'll use it over an
         # explicitly given gender.
@@ -46,19 +46,19 @@ class USCensusName(DictElement):
                 gender = self.root.getValueByPath(gender_path)
 
         if gender is None:
-            fn_gen = self.male.getName
+            fn_gen = self.male.getValue
             if random.random() < 0.5:
-                 fn_gen = self.female.getName
+                 fn_gen = self.female.getValue
         elif gender.lower() in ['m', 'male'] :
-            fn_gen = self.male.getName
+            fn_gen = self.male.getValue
         elif gender.lower() in ['f', 'female'] :
-            fn_gen = self.female.getName
+            fn_gen = self.female.getValue
         else:
             raise ValueError('Invalid gender: {0:s}'.format(gender))
 
         first = fn_gen()
 
-        last = self.surname.getName()
+        last = self.surname.getValue()
 
         if random.random() < self.pctMidName:
             middle = fn_gen()
@@ -82,7 +82,7 @@ class USCensusName(DictElement):
         if middle is not None: r['middle'] = middle
         if full is not None:   r['full'] = full
 
-        DictElement.addChildren(self, r, **kwargs)
+        DictElement.addChildren(self, r)
         return r
 
 
