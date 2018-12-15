@@ -128,12 +128,12 @@ class EntityElement(object):
                        root = None):
 
         self.name = name
-
         self.root = root
-
         self.params = params
         self.generator = None
-        self.mods = None
+        #self.mods = None
+
+        self.children = []
 
         return
 
@@ -149,30 +149,32 @@ class EntityElement(object):
         if max <= min:
             raise ValueError('min must be less than max in count_rand_fn()')
 
-        return lambda: int(((max - min) * np.random.rand()) + min)
+        return lambda: int(((max - min) * random.random()) + min)
 
     @staticmethod
     def count_norm_fn(mean=0.0, stdev=1.0, integer=False):
         if integer is False:
-            return lambda: np.random.normal(loc=mean, scale=stdev)
+            return lambda: random.normalvariate(mean, stdev)
 
-        return lambda: int(np.random.normal(loc=mean, scale=stdev))
+        return lambda: int(random.normalvariate(mean, stdev))
     
 
 class ArrayElement(EntityElement):
     '''
     '''
-    def __init__(self, generator = None,
-                       count_fn = None,
+    def __init__(self, count_fn = None,
+                       generator = None,
                        **kwargs):
 
         EntityElement.__init__(self, **kwargs)
 
-        # TODO - an ArrayElement may not have children
+        #if children is not None:
+        #    raise ValueError('An ArrayElement may not have children')
 
-        # count must be a callable function, but we can also accept an integer.
-        # If given an integer, we'll convert it using a lambda function which
-        # returns the appropriate value.
+        # count could be a callable function, but we can also accept an
+        # integer or None.  If given an integer, we'll convert it to a
+        # function which always returns that number.  A count of None will
+        # return an empty array.
 
         if not callable(count_fn):
             if type(count) is int:
@@ -180,21 +182,18 @@ class ArrayElement(EntityElement):
             else:
                 raise ValueError('Invalid type for element count')
 
-        self.count = count_fn
-
         self.count_fn = count_fn
         self.generator = generator
-
         return
 
-    def create(self, **kwargs):
+    def create(self):
         data = []
 
         if self.count_fn is None: return data
 
         c = self.count_fn()
         while c > 0:
-            e = self.generator.create(root = data)
+            e = self.generator.create()
             data.append(e)
             c -= 1
 
@@ -204,11 +203,13 @@ class ArrayElement(EntityElement):
 class DictElement(EntityElement):
     '''
     A DictElement may have children of any type.
+
+    The DictElement does not have a "create()" method.  This must be supplied
+    by the derrived class.
     '''
 
     def __init__(self, **kwargs):
         EntityElement.__init__(self, **kwargs)
-        self.children = None
         return
 
     def addElement(self, elem, label = None):
@@ -231,7 +232,12 @@ class DictElement(EntityElement):
         return
 
     def addChildren(self, data, **kwargs):
-        if self.children is None: return None
+        '''
+        add (execute) the child elements when the generator is invoked.
+        '''
+
+        if self.children is None:
+            return
 
         for child in self.children:
             enam = child[0]
@@ -248,8 +254,8 @@ class SimpleElement(EntityElement):
 
     def __init__(self, **kwargs):
         EntityElement.__init__(self, **kwargs)
-        # TODO - a SimpleElement may not have children
         return
 
-    def create(self, **kwargs):
-        return
+#    def create(self, **kwargs):
+#        return ""
+
