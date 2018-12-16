@@ -21,11 +21,11 @@ from datagen.entitygenerator import SimpleElement
 
 class NationalIDElement(SimpleElement):
     def __init__(self,
-                 useDashes = False,
+                 format = False,
                  **kwargs):
 
         SimpleElement.__init__(self, **kwargs)
-        self.useDashes = useDashes
+        self.format = format
         return
 
     def create(self):
@@ -41,7 +41,7 @@ class NationalIDElement(SimpleElement):
         # serial cannot be 0000
         ser = int(random.random() * 9999) + 1                 # 0001 .. 9999
 
-        if self.useDashes:
+        if self.format:
             return '{0:03d}-{1:02d}-{2:04d}'.format(area, group, ser)
 
         return '{0:03d}{1:02d}{2:04d}'.format(area, group, ser)

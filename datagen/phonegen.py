@@ -19,11 +19,12 @@ import sys
 from datagen.entitygenerator import SimpleElement
 
 class PhoneElement(SimpleElement):
-    def __init__(self, **kwargs):
+    def __init__(self, format=False, **kwargs):
         SimpleElement.__init__(self, **kwargs)
+        self.format = format
         return
 
-    def create(self, format = True):
+    def create(self):
 
         # Allowed ranges: [2-9] for the first digit, and [0-9] for the
         # second and third digits. When the second and third digits of an area
@@ -55,7 +56,7 @@ class PhoneElement(SimpleElement):
 
         sub = "{:04d}".format(sub)
 
-        if format is False:
+        if self.format is False:
             p = npa + nxx + sub
         else:
             p = "{0:s}-{1:s}-{2:s}".format(npa, nxx, sub)
