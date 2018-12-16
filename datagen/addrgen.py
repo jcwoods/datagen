@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 #   Copyright 2018 by Jeff Woods
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +18,11 @@ import json
 from datagen.sqlelement import SQLElement
 
 class USAddress(SQLElement):
+    '''
+    USAddress is simply a wrapper class which provides some default values
+    to the SQLElement class.  Nothing to see here folks...
+    '''
+
     def __init__(self,
                  dataFile = 'us_address.db',
                  tableName = 'us_address',
@@ -33,6 +36,9 @@ class USAddress(SQLElement):
 
 
 def main(argv):
+    '''
+    A simple test routine run by executing the module directly.
+    '''
     addr = USAddress()
     print(json.dumps(addr.create()))
 
