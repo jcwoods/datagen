@@ -23,9 +23,43 @@ class PhoneElement(SimpleElement):
         SimpleElement.__init__(self, **kwargs)
         return
 
-    def create(self):
-        r = int(random.random() * 10000000000)
-        p = '{0:010d}'.format(r)
+    def create(self, format = True):
+
+        # Allowed ranges: [2-9] for the first digit, and [0-9] for the
+        # second and third digits. When the second and third digits of an area
+        # code are the same, that code is called an easily recognizable code
+        # (ERC). ERCs designate special services; e.g., 888 for toll-free
+        # service. The NANP is not assigning area codes with 9 as the second
+        # digit.
+
+        npa = str(int(random.random() * 800) + 200)
+        while npa[1] == '9' or npa[1] == npa[2]:
+            npa = str(int(random.random() * 800) + 200)
+
+        # Allowed ranges: [2-9] for the first digit, and [0-9] for both the
+        # second and third digits (however, in geographic area codes the
+        # third digit of the exchange cannot be 1 if the second digit is also
+        # 1).
+        nxx = str(int(random.random() * 800) + 200)
+        while nxx[1] == '1' and nxx[2] == '1':
+            nxx = str(int(random.random() * 800) + 200)
+
+        # [0-9] for each of the four digits.
+        # Despite the widespread usage of NXX 555 for fictional telephone
+        # numbers, the only such numbers now specifically reserved for
+        # fictional use are 555-0100 through 555-0199, with the remaining 555
+        # numbers released for actual assignment as information numbers.
+        sub = int(random.random() * 10000)
+        while nxx == '555' and sub >= 100 and sub < 200:
+            sub = int(random.random() * 10000)
+
+        sub = "{:04d}".format(sub)
+
+        if format is False:
+            p = npa + nxx + sub
+        else:
+            p = "{0:s}-{1:s}-{2:s}".format(npa, nxx, sub)
+
         return p
 
 def main(argv):
