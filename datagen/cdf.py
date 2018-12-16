@@ -24,7 +24,8 @@ class CDF(object):
 
     '''
     Implements a simple class which loads a set of values that occur with
-    dissimilar frequencies.
+    dissimilar frequencies.  The selection of these items is done with a
+    "continuous distribution function", or CDF.
     '''
 
     def __init__(self, dataPath=None, dataFile=None, delimiter=None,
@@ -78,15 +79,14 @@ class CDF(object):
             self.cumweight.append(self.maxweight)
 
         f.close()
-
-        #print("maxweight: " + str(self.maxweight))
-        #print("labels: " + str(self.labels))
-        #print("cumweight: " + str(self.cumweight))
-        
         return
 
     @staticmethod
     def isGzip(file):
+        '''
+        Rwturns True if named file is gzip compressed, False otherwise.
+        '''
+
         with open(file, "rb") as fd:
             b = fd.read(3)
             if b == b"\x1f\x8b\x08":
