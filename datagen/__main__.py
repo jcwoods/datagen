@@ -106,7 +106,7 @@ def main(argv):
     egen.addElement(dob)
 
     ssn = NationalIDElement(name = 'ssn',
-                            useDashes = False)
+                            format = False)
     egen.addElement(ssn)
 
     name = USCensusName(name = 'name',
