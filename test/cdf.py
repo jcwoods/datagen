@@ -60,24 +60,13 @@ class TestCDF(unittest.TestCase):
                      "THOMAS": 13,
                      "WILLIAM": 26 }
 
-        counts   = { "CHARLES": 0,
-                     "DAVID": 0,
-                     "JAMES": 0,
-                     "JOHN": 0,
-                     "JOSEPH": 0,
-                     "MICHAEL": 0,
-                     "RICHARD": 0,
-                     "ROBERT": 0,
-                     "THOMAS": 0,
-                     "WILLIAM": 0 }
-
         for i in range(250):
             n = cdf.getValue()
-            counts[n] += 1
+            expected[n] -= 1
 
         # make sure we get expected counts
         for k in expected.keys():
-            self.assertTrue(expected[k] == counts[k])
+            self.assertTrue(expected[k] == 0)
 
         return
 
@@ -100,24 +89,13 @@ class TestCDF(unittest.TestCase):
                      "THOMAS": 13,
                      "WILLIAM": 26 }
 
-        counts   = { "CHARLES": 0,
-                     "DAVID": 0,
-                     "JAMES": 0,
-                     "JOHN": 0,
-                     "JOSEPH": 0,
-                     "MICHAEL": 0,
-                     "RICHARD": 0,
-                     "ROBERT": 0,
-                     "THOMAS": 0,
-                     "WILLIAM": 0 }
-
         for i in range(250):
             n = cdf.getValue()
-            counts[n] += 1
+            expected[n] -= 1
 
         # make sure we get expected counts
         for k in expected.keys():
-            self.assertTrue(expected[k] == counts[k])
+            self.assertTrue(expected[k] == 0)
 
         return
 
