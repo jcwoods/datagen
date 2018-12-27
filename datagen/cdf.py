@@ -62,12 +62,12 @@ class CDF(object):
         dataFile = os.path.join(dataPath, dataFile)
 
         if self.isGzip(dataFile):
-            f = gzip.open(dataFile, 'r')
+            f = gzip.open(dataFile, 'r', encoding='utf-8')
         else:
-            f = open(dataFile, 'r')
+            f = open(dataFile, 'r', encoding='utf-8')
 
         for line in f:
-            fields = line.decode('utf-8').strip().split(delimiter)
+            fields = line.strip().split(delimiter)
             self.labels.append(fields[labelPos])
 
             weight = float(fields[weightPos])
