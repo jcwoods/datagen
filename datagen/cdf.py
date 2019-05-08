@@ -62,7 +62,7 @@ class CDF(object):
         dataFile = os.path.join(dataPath, dataFile)
 
         if self.isGzip(dataFile):
-            f = gzip.open(dataFile, 'r', encoding='utf-8')
+            f = gzip.open(dataFile, mode='rt', encoding='utf-8')
         else:
             f = open(dataFile, 'r', encoding='utf-8')
 
