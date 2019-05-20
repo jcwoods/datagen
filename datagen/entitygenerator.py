@@ -1,21 +1,8 @@
 #!/usr/bin/python3
 
-#   Copyright 2018 by Jeff Woods
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
-import sys
+import os
 import random
+import sys
 
 # ### Entity Generator ###
 # The EntityGenerator class serves as a container for Elements.  When the
@@ -118,6 +105,12 @@ class EntityGenerator(object):
 
         return path  # can't parse?  return the whole dang thing as literal
 
+    @staticmethod
+    def defaultDataPath():
+        p = os.path.dirname(__file__)
+        datapath = os.path.join(p, 'data')
+        return datapath
+
 
 class EntityElement(object):
     '''
@@ -142,12 +135,12 @@ class EntityElement(object):
                        root = None):
 
         self.name = name
+
         self.root = root
+
         self.params = params
         self.generator = None
-        #self.mods = None
-
-        self.children = []
+        self.mods = None
 
         return
 
@@ -168,46 +161,48 @@ class EntityElement(object):
     @staticmethod
     def count_norm_fn(mean=0.0, stdev=1.0, integer=False):
         if integer is False:
-            return lambda: random.normalvariate(mean, stdev)
+            return lambda: random.normalvariate(mu=mean, sigma=stdev)
 
-        return lambda: int(random.normalvariate(mean, stdev))
+        return lambda: int(random.normalvariate(mu=mean, sigma=stdev))
     
 
 class ArrayElement(EntityElement):
     '''
     '''
-    def __init__(self, count_fn = None,
-                       generator = None,
+    def __init__(self, generator = None,
+                       count_fn = None,
+                       count = None,
                        **kwargs):
 
         EntityElement.__init__(self, **kwargs)
 
-        #if children is not None:
-        #    raise ValueError('An ArrayElement may not have children')
+        # TODO - an ArrayElement may not have children
 
-        # count could be a callable function, but we can also accept an
-        # integer or None.  If given an integer, we'll convert it to a
-        # function which always returns that number.  A count of None will
-        # return an empty array.
+        # count must be a callable function, but we can also accept an integer.
+        # If given an integer, we'll convert it using a lambda function which
+        # returns the appropriate value.
 
         if not callable(count_fn):
             if type(count) is int:
-                count_fn = lambda: count_fn
+                count_fn = lambda: count
             else:
                 raise ValueError('Invalid type for element count')
 
+        self.count = count_fn
+
         self.count_fn = count_fn
         self.generator = generator
+
         return
 
-    def create(self):
+    def create(self, **kwargs):
         data = []
 
         if self.count_fn is None: return data
 
         c = self.count_fn()
         while c > 0:
-            e = self.generator.create()
+            e = self.generator.create(root = data)
             data.append(e)
             c -= 1
 
@@ -217,13 +212,11 @@ class ArrayElement(EntityElement):
 class DictElement(EntityElement):
     '''
     A DictElement may have children of any type.
-
-    The DictElement does not have a "create()" method.  This must be supplied
-    by the derrived class.
     '''
 
     def __init__(self, **kwargs):
         EntityElement.__init__(self, **kwargs)
+        self.children = None
         return
 
     def addElement(self, elem, label = None):
@@ -246,12 +239,7 @@ class DictElement(EntityElement):
         return
 
     def addChildren(self, data, **kwargs):
-        '''
-        add (execute) the child elements when the generator is invoked.
-        '''
-
-        if self.children is None:
-            return
+        if self.children is None: return None
 
         for child in self.children:
             enam = child[0]
@@ -268,8 +256,8 @@ class SimpleElement(EntityElement):
 
     def __init__(self, **kwargs):
         EntityElement.__init__(self, **kwargs)
+        # TODO - a SimpleElement may not have children
         return
 
-#    def create(self, **kwargs):
-#        return ""
-
+    def create(self, **kwargs):
+        return
