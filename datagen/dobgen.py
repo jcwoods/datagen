@@ -1,113 +1,109 @@
 #!/usr/bin/python3
 
-#   Copyright 2018 by Jeff Woods
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
-import bisect
 import random
 import sys
-
 from datetime import datetime, timedelta
 from datagen.entitygenerator import EntityElement, SimpleElement
 
-# Age distributions taken from Wikipedia:
-# https://en.wikipedia.org/wiki/Demography_of_the_United_States
-#    15-19 (7.1%) (and we're only interested in the 18-19 range here!)
-#    20-24 (7.0%)
-#    25-29 (6.8%)
-#    30-34 (6.5%)
-#    35-39 (6.5%)
-#    40-44 (6.8%)
-#    45-49 (7.4%)
-#    50-54 (7.2%)
-#    55-59 (6.4%)
-#    60-64 (5.4%)
-#    65-69 (4.0%)
-#    70-74 (3.0%)
-#    75-79 (2.4%)
-#    80-84 (1.9%)
-#    85+   (1.8%)
-
 class DOBElement(SimpleElement):
 
-    '''
-    This is an awful log like what we already did in the CDF class, but it
-    doesn't quite fit.
-    '''
+    # Age distribution taken from "Demography of the United States":
+    #     https://en.wikipedia.org/wiki/Demography_of_the_United_States
+    #
+    # The format used in the age_dist table is very easy to extract from
+    # external sources.  It will be munged by the class to make it usable.
+    #
+    # Ranges are inclusive of their endpoints.
+    #
+    # The sum of all percentages SHOULD sum to nearly 100%, but some slop is
+    # expected and compensated for in the algorithm.
+    # 
+    #            (minage, maxage, pct)
+    age_dist = [ (18, 19, 0.4 * 7.1),
+                 (20, 24, 7.0),
+                 (25, 29, 6.8),
+                 (30, 34, 6.5),
+                 (35, 39, 6.5),
+                 (40, 44, 6.8),
+                 (45, 49, 7.4),
+                 (50, 54, 7.2),
+                 (55, 59, 6.4),
+                 (60, 64, 5.4),
+                 (65, 69, 4.0),
+                 (70, 74, 3.0),
+                 (75, 79, 2.4),
+                 (80, 84, 1.9),
+                 (85, 99, 1.8)  ]
 
-    # format is ("percent", ("min days", "max days")).
-    ageDistribution = [ (0.4 * 0.071, (365.25 * 18, 365.25 * 20)),
-                        (      0.070, (365.25 * 20, 365.25 * 25)),
-                        (      0.068, (365.25 * 25, 365.25 * 30)),
-                        (      0.065, (365.25 * 30, 365.25 * 35)),
-                        (      0.065, (365.25 * 35, 365.25 * 40)),
-                        (      0.068, (365.25 * 40, 365.25 * 45)),
-                        (      0.074, (365.25 * 45, 365.25 * 50)),
-                        (      0.072, (365.25 * 50, 365.25 * 55)),
-                        (      0.064, (365.25 * 55, 365.25 * 60)),
-                        (      0.054, (365.25 * 60, 365.25 * 65)),
-                        (      0.040, (365.25 * 65, 365.25 * 70)),
-                        (      0.030, (365.25 * 70, 365.25 * 75)),
-                        (      0.024, (365.25 * 75, 365.25 * 80)),
-                        (      0.019, (365.25 * 80, 365.25 * 85)),
-                        (      0.018, (365.25 * 85, 365.25 * 105)) ]
-
-    @staticmethod
-    def daysOld(x):
+    def initCDF(self):
         '''
-        Given a bucket from ageDistribution, how many days old EXACTLY?
+        The age distribution exists in "buckets".  We need to convert this to
+        a CDF (cumulative distribution function), where each entry in the
+        table represents the percentage of the population at a given age
+        bracket or younger.
         '''
 
-        return r
+        cum_pct = 0.0
+        cdf = []
 
-    def __init__(self, minAge = 18,
-                       maxAge = 100,
-                       dateFormat = '%Y-%m-%d',
+        for e in DOBElement.age_dist:
+            prev_pct = cum_pct
+            cum_pct += e[2]
+            base_days = e[0] * 365.25
+            range_years = (e[1] - e[0]) + 1
+            range_days = range_years * 365.25
+
+            entry = (prev_pct, cum_pct, base_days, range_days)
+            cdf.append(entry)
+
+        self.cdf = cdf
+        self.cum_pct = cum_pct  # this allows for some slop in the table.
+
+        return
+
+    def __init__(self, minAge = None,
+                       dt_format = '%Y-%m-%d',
+                       pctPresent = 0.9382,
                        **kwargs):
 
         SimpleElement.__init__(self, **kwargs)
+        self.initCDF()
+        self.dt_format = dt_format
+        self.pctPresent = pctPresent
+        self.min_age = minAge
+        self.now = datetime.now()
 
-        self.dist = []
-
-        maxPct = 0
-        for i in DOBElement.ageDistribution:
-            maxPct += i[0]
-            self.dist.append((maxPct, i[1]))
-
-        self.maxPct = maxPct
-
-        self.dt_format = dateFormat
         return
 
-    def create(self):
-        r = random.random() * self.maxPct
+    def create(self, **kwargs):
 
-        i = bisect.bisect(self.dist, (r, ))
-        entry = self.dist[i][1]
+        # TODO - honor self.min_age
 
-        days_min = entry[0]
-        days_max = entry[1]
-        days_range = days_max - days_min
+        if random.random() >= self.pctPresent:
+            return None
 
-        ndays = (random.random() * days_range) + days_min
+        # Generate a random number 0..cum_pct. 
+        rnd = random.random() * self.cum_pct
 
-        dt = datetime.now() - timedelta(days=ndays)
+        # Find the bucket in the CDF which matches 'rnd'
+        for e in self.cdf:
+            if rnd >= e[0] and rnd < e[1]: break
+
+        # 'e' now contains our matching age bracket and we can compute an age
+        # (in days) for the entity.  e[2] contains the "base" (minimum) days
+        # the entity must be in order to fall in this bracket, and e[3]
+        # contains the number of days which span the bracket.  By adding
+        # e[2] to a random number 0..e[3], we get an age in days.
+
+        rnd_days = e[2] + (random.random() * e[3])
+        dt = self.now - timedelta(days=rnd_days)
         return dt.strftime(self.dt_format)
 
 def main(argv):
     dob = DOBElement()
-    print(dob.create())
+
+    for n in range(1000):
+        print(dob.create())
 
     return 0
 
