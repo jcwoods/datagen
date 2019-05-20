@@ -1,71 +1,67 @@
 #!/usr/bin/python3
 
-#   Copyright 2018 by Jeff Woods
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
 import random
 import sys
-from datagen.entitygenerator import SimpleElement
+from datagen.entitygenerator import EntityElement, SimpleElement
 
 class PhoneElement(SimpleElement):
-    def __init__(self, format=False, **kwargs):
+    def __init__(self, formatted=False, **kwargs):
         SimpleElement.__init__(self, **kwargs)
-        self.format = format
+        self.formatted = formatted
         return
 
-    def create(self):
+    # Rules taken from "Modern plan" found at:
+    #     https://en.wikipedia.org/wiki/North_American_Numbering_Plan
+    #
+    # Stated plainly:
+    # 1.  There are three sections to a phone number, NPA (area code), NXX
+    #     (exchange), and XXXX (line number).
+    # 2.  For the NPA:
+    #     a. three digits
+    #     b. 2-9 for first digit, 0-8 for second, and 0-9 for third digits
+    #        (middle digit may not be a '9', which would be a trunk prefix)
+    #     d. when 2nd and 3rd digits are the same, it's classified an ERC
+    #        which, while not invalid, we will choose to avoid.
+    # 3.  For the NXX:
+    #     a. three digits
+    #     b. [2-9] for first digit and [0-9] for second and third digits
+    #     c. second and third digits may not both be '1'
+    #     d. 555 should generally be avoided (used for informational or
+    #        fictional numbers)
+    #     e.  958/959 (testing) and 950/976 (service) should be avoided.
+    #     f.  should not match the NPA.
 
-        # Allowed ranges: [2-9] for the first digit, and [0-9] for the
-        # second and third digits. When the second and third digits of an area
-        # code are the same, that code is called an easily recognizable code
-        # (ERC). ERCs designate special services; e.g., 888 for toll-free
-        # service. The NANP is not assigning area codes with 9 as the second
-        # digit.
+    def create(self, **kwargs):
 
-        npa = str(int(random.random() * 800) + 200)
-        while npa[1] == '9' or npa[1] == npa[2]:
-            npa = str(int(random.random() * 800) + 200)
+        while True:
+            npai = int(random.random() * 800) + 200
+            npa = '{0:03d}'.format(npai)
+            if npa[1] != npa[2] and npa[1] != 9: break
 
-        # Allowed ranges: [2-9] for the first digit, and [0-9] for both the
-        # second and third digits (however, in geographic area codes the
-        # third digit of the exchange cannot be 1 if the second digit is also
-        # 1).
-        nxx = str(int(random.random() * 800) + 200)
-        while nxx[1] == '1' and nxx[2] == '1':
-            nxx = str(int(random.random() * 800) + 200)
+        while True:
+            nxxi = int(random.random() * 800) + 200
+            nxx = '{0:03d}'.format(nxxi)
+            if nxx[1:] != '11' and \
+               nxx not in [ '555', '958', '959', '950', '976' ]:
+                continue
+            break
 
-        # [0-9] for each of the four digits.
-        # Despite the widespread usage of NXX 555 for fictional telephone
-        # numbers, the only such numbers now specifically reserved for
-        # fictional use are 555-0100 through 555-0199, with the remaining 555
-        # numbers released for actual assignment as information numbers.
-        sub = int(random.random() * 10000)
-        while nxx == '555' and sub >= 100 and sub < 200:
-            sub = int(random.random() * 10000)
+        linei = int(random.random() * 10000)
+        line = '{0:04d}'.format(linei)
 
-        sub = "{:04d}".format(sub)
-
-        if self.format is False:
-            p = npa + nxx + sub
+        if not self.formatted:
+            p = npa + nxx + line
         else:
-            p = "{0:s}-{1:s}-{2:s}".format(npa, nxx, sub)
+            p = '-'.join((npa,nxx,line))
 
         return p
 
 def main(argv):
-    phone = PhoneElement()
-    print(phone.create())
+    phone = PhoneElement(formatted=True)
+
+    for n in range(10):
+        print(phone.create())
+
     return 0
 
 if __name__ == '__main__':
