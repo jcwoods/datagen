@@ -1,100 +1,140 @@
 #!/usr/bin/python3
 
-#   Copyright 2018 by Jeff Woods
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
-import sys
+import bisect
 import gzip
-import os
 import random
-from bisect import bisect
+import sys
 
 class CDF(object):
 
     '''
-    Implements a simple class which loads a set of values that occur with
-    dissimilar frequencies.  The selection of these items is done with a
-    "continuous distribution function", or CDF.
+    Select items with non-uniform distributions from a list.
+
+    Input data file is expected to contain two columns (but may contain more):
+    a name and a relative frequency.  As an example, given the input:
+
+        JOHN     2.8
+        ROBERT   1.4
+        WILLIAM  0.7
+
+    The name JOHN would be selected four times as often as WILLIAM and twice
+    as often as ROBERT.
+
+    Likewise,
+
+        JOHN     0.6758
+        ROBERT   0.6758
+        WILLIAM  0.6758
+
+    All three names would be selected at the same frequency (eg, they are
+    uniformly distributed).
+    
+    There is no requirement on the range or sum of the frequency values.  All
+    frequencies are relative.
     '''
 
-    def __init__(self, dataPath=None, dataFile=None, delimiter=None,
-                       labelPos=0, weightPos=1, isCumulative=True):
+    def __init__(self, dataFile, delimiter = None, isCumulative = False,
+                       skipHeader = False, tagCol = 0, freqCol = 1, valType = None):
         '''
-            dataPath:      location (path) of the data files to be loaded.
-                           If None, defaults to the location of this
-                           module + "/data".
-            dataFile:      the name of the file to be loaded.
-            delimiter:     the delimiter which separates fields in dataFile.
-                           If None, whitespace will be used.
-            labelPos:      the position (0-based) of the label field.  This
-                           is the value which will be returned by getValue().
-            weightPos:     the weight associated with the label.  This may be
-                           absolute/relative or cumulative.
-            isCumulative:  if False, weights are absolute/relative.  If True,
-                           weights are cumulative and must be given in sorted
-                           (ascending) order.
+        Create a new CDF, loading distribution data from the named file.
+
+        dataFile specifies the name of the file from which data will be read.
+        Both compressed (gzip) and uncompressed files are supported.  The file
+        must not contain a header row.
+
+        If isCumulative is True, the frequency is taken as a cumulative
+        distribution.  If it is false, the frequency column is read as a
+        relative distribution.
+
+        If delimiter is None (default), the rows will be split on groupings of
+        whitespace.  Otherwise, the specified delimiter will be used.
+
+        tagCol identifies the column (by index) which contains the item name.
+        This is the value which will be returned by the search.  By default,
+        this will be the first column.
+
+        distCol identifies the column (by index) which contains the frequency
+        distribution.
         '''
 
-        self.cumweight = []
-        self.labels = []
+        self.cumdist = []
+        self.values = []
 
-        self.maxweight = 0.0
+        self.range = 0.0
 
-        # dataPath defaults to "$PWD/data" if not given
-        if dataPath is None:
-            p = os.path.dirname(__file__)
-            dataPath = os.path.join(p, 'data')
-
-        if dataFile is None:
-            raise ValueError("dataFile parameter must be provided")
-
-        dataFile = os.path.join(dataPath, dataFile)
-
-        if self.isGzip(dataFile):
-            f = gzip.open(dataFile, mode='rt', encoding='utf-8')
+        if self._is_gzip(dataFile):
+            f = gzip.open(dataFile, 'r')
         else:
-            f = open(dataFile, 'r', encoding='utf-8')
+            f = open(dataFile, 'rb')
 
-        for line in f:
-            fields = line.strip().split(delimiter)
-            self.labels.append(fields[labelPos])
+        if skipHeader: line = f.readline()
+        for data in f:
 
-            weight = float(fields[weightPos])
+            try:
+                line = data.decode('utf-8')
+                fields = line.strip().split(delimiter)
+                tag = str(fields[tagCol])
+                freq = float(fields[freqCol])
+            except UnicodeError:
+                continue
+
             if isCumulative:
-                self.maxweight = weight
-            else:
-                self.maxweight += weight
+                if freq < self.range:
+                    raise RuntimeError('cumulative distributions are not sorted!')
 
-            self.cumweight.append(self.maxweight)
+                self.range = freq
+            else:
+                if freq == 0.0: continue
+                self.range += freq
+
+            if valType is not None:
+                if valType == 'int':
+                    tag = int(tag)
+
+            self.values.append(tag if tag != "" else None)
+            self.cumdist.append(self.range)
 
         f.close()
         return
 
     @staticmethod
-    def isGzip(file):
+    def _is_gzip(file):
         '''
-        Rwturns True if named file is gzip compressed, False otherwise.
+        Returns True if the named file is gzip compressed.
         '''
 
-        with open(file, "rb") as fd:
-            b = fd.read(3)
-            if b == b"\x1f\x8b\x08":
-                return True
+        f = open(file, 'rb')
+        hdr = f.read(2)
+        f.close()
 
-        return False
+        return True if hdr == b'\x1f\x8b' else False
 
-    def getValue(self):
-        r = random.random() * self.maxweight
-        pos = bisect(self.cumweight, r)
-        return self.labels[pos]
+    def getValue(self, r = None):
+        '''
+        Select a random value.
+        
+        If provided, 'r' must be in the range 0 <= r < 1.  If r is not
+        provided, the standard random library will be used.
+        '''
+
+        if r is None: r = random.random()
+
+        r *= self.range
+        pos = bisect.bisect(self.cumdist, r)
+        return self.values[pos]
+
+
+def main(argv):
+    delimiter = None
+    if (len(argv) == 3): delimiter = argv[2]
+
+    cdf = CDF(argv[1], delimiter = delimiter)
+
+    for n in range(10):
+        print('{0:d}: {1:s}'.format(n, cdf.getValue()))
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit( main(sys.argv) )
+
