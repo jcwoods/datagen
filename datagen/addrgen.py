@@ -1,5 +1,19 @@
 #!/usr/bin/python3
 
+#   Copyright 2019 by Jeff Woods
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import sys
 import gzip
 import json
@@ -76,7 +90,7 @@ class AddressDB(DictElement):
 
     def __init__(self, datapath = None,
                        dbFile=None,
-                       rownum_col=None,
+                       rownum_col='rowid',
                        table_name=None,
                        **kwargs ):
 
@@ -92,10 +106,12 @@ class AddressDB(DictElement):
         db = sqlite3.connect(dbFile)
         cursor = db.cursor()
 
+        # careful -- sql injection possible here
         min_sql = 'select min({0:s}) from {1:s}'.format(rownum_col, table_name)
         cursor.execute(min_sql)
         self.min_recno = cursor.fetchone()[0]
 
+        # careful -- sql injection possible here
         max_sql = 'select max({0:s}) from {1:s}'.format(rownum_col, table_name)
         cursor.execute(max_sql)
         self.max_recno = cursor.fetchone()[0]
@@ -105,6 +121,7 @@ class AddressDB(DictElement):
 
         cursor.row_factory = AddressDB.sqlite_dict_factory
 
+        # careful -- sql injection possible here
         sql = 'select * from {0:s} where {1:s} = ?'.format(table_name,
                                                            rownum_col)
 
@@ -121,8 +138,9 @@ class AddressDB(DictElement):
         r = int(random.random() * (self.max_recno - self.min_recno + 1)) + self.min_recno
         d = self.cursor.execute(self.query_sql, (r, )).fetchone()
 
-        # remove the rownum column
-        del(d[self.rownum_col])
+        # remove the rownum column if it's not the builtin 'rowid'
+        if self.rownum_col != 'rowid':
+            del(d[self.rownum_col])
 
         DictElement.addChildren(self, d, **kwargs)
         return d
@@ -140,8 +158,8 @@ class USAddress(AddressFile):
 
 class USAddressDB(AddressDB):
     def __init__( self, dbFile = 'us_addresses_10k.db',
-                        rownum_col = 'recno',
-                        table_name = 'us_addresses',
+                        rownum_col = 'rowid',
+                        table_name = 'us_address',
                         **kwargs ):
 
         AddressDB.__init__(self, dbFile = dbFile,

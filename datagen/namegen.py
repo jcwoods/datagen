@@ -1,5 +1,19 @@
 #!/usr/bin/python3
 
+#   Copyright 2019 by Jeff Woods
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 from bisect import bisect
 from datagen.cdf import CDF
 import csv
@@ -14,10 +28,10 @@ from datagen.entitygenerator import EntityGenerator, EntityElement, \
 
 class USCensusName(DictElement):
     def __init__(self, datapath = None,
-                       male = "dist.male.first",
-                       female = "dist.female.first",
+                       male = "male.dat.gz",
+                       female = "female.dat.gz",
                        surname = "surname.dat.gz",
-                       suffix = "suffix_dist.dat",
+                       suffix = None,
                        order=None,           # output order of full name (one
                                              #   of None, LFM, or FML).
                        pctMidName=1.0,       # percentage of names which have
@@ -27,7 +41,7 @@ class USCensusName(DictElement):
                                              #   only an initial (0..1)
                        pctFirstInitial=0.0,  # percentage of first names which
                                              #   only a first initial
-                       pctSuffix=0.0722,     # percentage of names which
+                       pctSuffix=0,          # percentage of names which
                                              #   include a suffix
                        **kwargs):
 
@@ -41,12 +55,16 @@ class USCensusName(DictElement):
             male = os.path.join(datapath, male)
             female = os.path.join(datapath, female)
             surname = os.path.join(datapath, surname)
-            suffix = os.path.join(datapath, suffix)
+            if suffix is not None:
+                suffix = os.path.join(datapath, suffix)
 
-        self.male = CDF(male)
-        self.female = CDF(female)
+        self.male = CDF(male, delimiter="|")
+        self.female = CDF(female, delimiter="|")
         self.surname = CDF(surname, isCumulative = True, delimiter="|")
-        self.suffix = CDF(suffix)
+        if suffix is not None:
+            self.suffix = CDF(suffix)
+        else:
+            self.suffix = None
 
         self.order = order
         self.pctMidName = pctMidName
@@ -55,14 +73,12 @@ class USCensusName(DictElement):
         self.pctSuffix = pctSuffix
         return
 
-
     def buildName(self, last = None, first = None, middle = None, suffix = None):
         r = { 'first': first, 'last': last, 'suffix': suffix }
         if middle is not None: r['middle'] = middle
         full = self.buildFullName(last, first, middle, suffix)
         if full is not None:   r['full'] = full
         return r
-
 
     def buildFullName(self, last = None, first = None, middle = None, suffix = None):
 
@@ -97,13 +113,19 @@ class USCensusName(DictElement):
         if gender is None:
             if random.random():
                 fn_gen = self.male.getValue
-                suffix_gen = self.suffix.getValue
+                if self.suffix is not None:
+                    suffix_gen = self.suffix.getValue
+                else:
+                    suffix_gen = lambda: ""
             else:
                 fn_gen = self.female.getValue
                 suffix_gen = lambda: ""
         elif gender.lower() in ['m', 'male'] :
             fn_gen = self.male.getValue
-            suffix_gen = self.suffix.getValue
+            if self.suffix is not None:
+                suffix_gen = self.suffix.getValue
+            else:
+                suffix_gen = lambda: ""
         elif gender.lower() in ['f', 'female'] :
             fn_gen = self.female.getValue
             suffix_gen = lambda: ""
@@ -148,9 +170,9 @@ class USCensusNameSet(ArrayElement):
       * a married name
     '''
 
-    def __init__(self, male = "dist.male.first",
-                       female = "dist.female.first",
-                       surname = "surname.dat.gz",
+    def __init__(self, male = "male.dat.gz",
+                       female = "female.dat.gz",
+                       surname = None,
                        order = "LFM",
                        pctMidName = 1.0,
                        pctMidInitial = 0.0,
@@ -279,8 +301,8 @@ class USCensusNameSet(ArrayElement):
 class Nicknames():
     def __init__(self, datapath = None,
                        nicknames_file = 'nicknames.csv',
-                       male_dist = 'dist.male.first',
-                       female_dist = 'dist.female.first'):
+                       male_dist = 'male.dat.gz',
+                       female_dist = 'female.dat.gz'):
 
         if datapath is None:
             p = os.path.dirname(__file__)
@@ -401,9 +423,10 @@ class Nicknames():
         '''
 
         freq = {}
-        with open(file, "r") as dist:
+        with gzip.open(file, "r") as dist:
             for line in dist:
-                fields = line.strip().split()
+                line = line.decode("utf-8")
+                fields = line.strip().split("|")
                 name = fields[0].upper()
                 pct = float(fields[1]) / 100
                 freq[name] = pct
