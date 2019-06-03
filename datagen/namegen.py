@@ -84,14 +84,14 @@ class USCensusName(DictElement):
 
         if self.order is "LFM":
             if middle is not None:
-                full = '{0:s} {1:s} {2:s}'.format(last, first, middle)
+                full = " ".join((last, first, middle))
             else:
-                full = '{0:s} {1:s}'.format(last, first)
+                full = " ".join((last, first))
         elif self.order is "FML":
             if middle is not None:
-                full = '{0:s} {1:s} {2:s}'.format(first, middle, last)
+                full = " ".join((first, middle, last))
             else:
-                full = '{0:s} {1:s}'.format(first, last)
+                full = " ".join((first, last))
         else:
             full = None
 
