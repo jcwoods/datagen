@@ -66,18 +66,19 @@ class USDriversLicenseElement(DictElement):
             #"NJ": lambda: None,  # it's complicated
             "NM": lambda: self.dn(9),
             "NV": lambda: self.dn(10),
-            "NY": lambda: ' '.join(self.dn(3), self.dn(3), self.dn(3)),
+            "NY": lambda: ' '.join((self.dn(3), self.dn(3), self.dn(3))),
             "OK": lambda: self.an(1) + self.dn(8),
             "OH": lambda: self.an(2) + self.dn(6),
             "OR": lambda: self.dn(7),
-            "PA": lambda: ' '.join(self.dn(2), self.dn(3), self.dn(3)),
+            "PA": lambda: ' '.join((self.dn(2), self.dn(3), self.dn(3))),
             "RI": lambda: self.dn(7),
             "SC": lambda: self.dn(9),
             "SD": lambda: self.dn(8),
             "TN": lambda: self.dn(random.choice([8,9])),
             "TX": lambda: self.dn(8),
             "UT": lambda: self.dn(9),
-            "VA": lambda: '-'.join(self.an(1) + self.dn(2), self.dn(2), self.dn(4)),
+            "VA": lambda: '-'.join((self.an(1) + self.dn(2), self.dn(2),
+                self.dn(4))),
             "VT": lambda: self.dn(8),
             #"WA": lambda: None,  # it's compilcated
             #"WI": lambda: None,  # it's complicated
@@ -141,7 +142,9 @@ class USDriversLicenseElement(DictElement):
 
 def main(argv):
     dl = USDriversLicenseElement()
-    print(dl.create())
+    for i in range(10000):
+        print(dl.create())
+
     return 0
 
 if __name__ == '__main__':
